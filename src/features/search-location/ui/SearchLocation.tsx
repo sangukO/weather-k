@@ -3,7 +3,11 @@ import type { ChangeEvent } from "react";
 import { Input, Dropdown, useDebounce } from "@/shared";
 import { getFilteredDistricts } from "@/entities/district";
 
-export const SearchLocation = () => {
+interface SearchLocationProps {
+  initialValue?: string; // 외부 초기값
+}
+
+export const SearchLocation = ({ initialValue = "" }: SearchLocationProps) => {
   const [keyword, setKeyword] = useState<string>("");
   const [results, setResults] = useState<string[]>([]);
 
@@ -12,6 +16,13 @@ export const SearchLocation = () => {
 
   // 0.3초 디바운스 적용
   const debouncedKeyword = useDebounce(keyword, 300);
+
+  // 초기값 변경 시 반영
+  useEffect(() => {
+    if (initialValue) {
+      setKeyword(initialValue);
+    }
+  }, [initialValue]);
 
   // 디바운스 이후 드롭다운 목록 변경 로직
   useEffect(() => {
