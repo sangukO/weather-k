@@ -2,12 +2,17 @@ import { useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
 import { Input, Dropdown, useDebounce } from "@/shared";
 import { getFilteredDistricts } from "@/entities/district";
+import { getCoordsFromAddress } from "@/shared/api";
 
 interface SearchLocationProps {
   initialValue?: string; // 외부 초기값
+  onLocationSelect?: (lat: number, lng: number, address: string) => void;
 }
 
-export const SearchLocation = ({ initialValue = "" }: SearchLocationProps) => {
+export const SearchLocation = ({
+  initialValue = "",
+  onLocationSelect,
+}: SearchLocationProps) => {
   const [keyword, setKeyword] = useState<string>("");
   const [results, setResults] = useState<string[]>([]);
 
@@ -51,9 +56,17 @@ export const SearchLocation = ({ initialValue = "" }: SearchLocationProps) => {
   };
 
   // 드롭다운 선택
-  const handleSelect = (item: string) => {
+  const handleSelect = async (item: string) => {
     setKeyword(item);
     setResults([]);
+
+    // 주소를 좌표로 변환
+    const coords = await getCoordsFromAddress(item);
+
+    if (coords && onLocationSelect) {
+      onLocationSelect(coords.latitude, coords.longitude, item);
+    }
+
     setIsSearching(false);
   };
 
