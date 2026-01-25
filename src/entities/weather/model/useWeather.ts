@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchCurrentWeather } from "@/shared/api/weather";
+import { parseWeatherData, type WeatherItem } from "../lib";
 
 interface WeatherProps {
   lat: number | null;
@@ -22,5 +23,11 @@ export const useWeather = ({ lat, lng }: WeatherProps) => {
 
     // 데이터 캐싱
     staleTime: 1000 * 60 * 5,
+
+    // select 옵션을 사용하여 미리 파싱
+    select: (data) => {
+      if (!data) return null;
+      return parseWeatherData(data as WeatherItem[]);
+    },
   });
 };
