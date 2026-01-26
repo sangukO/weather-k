@@ -2,17 +2,25 @@ import { useState, useEffect } from "react";
 import type { ChangeEvent } from "react";
 import { Input, Dropdown, useDebounce } from "@/shared";
 import { getFilteredDistricts } from "@/entities/district";
+import { getCoordsFromAddress } from "@/shared/api";
 
 interface SearchLocationProps {
   initialValue?: string; // 외부 초기값
+  onLocationSelect?: (lat: number, lng: number, address: string) => void;
 }
 
-export const SearchLocation = ({ initialValue = "" }: SearchLocationProps) => {
+export const SearchLocation = ({
+  initialValue = "",
+  onLocationSelect,
+}: SearchLocationProps) => {
   const [keyword, setKeyword] = useState<string>("");
   const [results, setResults] = useState<string[]>([]);
 
   // 현재 검색 중인지 여부
   const [isSearching, setIsSearching] = useState(false);
+
+  // 인풋 포커스 여부 상태 추가
+  const [isFocused, setIsFocused] = useState(false);
 
   // 0.3초 디바운스 적용
   const debouncedKeyword = useDebounce(keyword, 300);
@@ -51,9 +59,17 @@ export const SearchLocation = ({ initialValue = "" }: SearchLocationProps) => {
   };
 
   // 드롭다운 선택
-  const handleSelect = (item: string) => {
+  const handleSelect = async (item: string) => {
     setKeyword(item);
     setResults([]);
+
+    // 주소를 좌표로 변환
+    const coords = await getCoordsFromAddress(item);
+
+    if (coords && onLocationSelect) {
+      onLocationSelect(coords.latitude, coords.longitude, item);
+    }
+
     setIsSearching(false);
   };
 
@@ -71,13 +87,15 @@ export const SearchLocation = ({ initialValue = "" }: SearchLocationProps) => {
       <Input
         value={keyword}
         onChange={handleSearch}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setTimeout(() => setIsFocused(false), 200)}
         placeholder="지역명을 입력하세요."
       />
-      {keyword && results.length > 0 && (
+      {isFocused && keyword && results.length > 0 && (
         <Dropdown items={results} onSelect={handleSelect} />
       )}
 
-      {showNoDataMessage && (
+      {isFocused && showNoDataMessage && (
         <div className="absolute z-10 mt-1 w-full rounded-lg border border-gray-200 bg-white p-4 text-center text-sm text-gray-500 shadow-xl">
           해당 장소의 정보가 제공되지 않습니다.
         </div>
