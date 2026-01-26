@@ -1,3 +1,5 @@
+import { FORECAST_BASE_TIMES } from "../constants";
+
 /** 초단기실황
  *  현재 시간 기준으로 연월일과 45분 전 시간 반환
  */
@@ -37,10 +39,10 @@ export const getNearForecastTime = () => {
   const hour = checkTime.getHours();
 
   // 단기예보 발표 시간 리스트
-  const baseTimes = [2, 5, 8, 11, 14, 17, 20, 23];
+  const baseTimes = FORECAST_BASE_TIMES;
 
   // 현재 시간보다 작거나 같은 발표 시간 중 가장 큰 값 찾기
-  let nearTime = baseTimes.filter((t) => t <= hour).reverse()[0];
+  let nearTime = baseTimes.filter((t: number) => t <= hour).reverse()[0];
 
   // 현재 시간이 2시 이전이라면 어제 23시 데이터
   if (nearTime === undefined) {

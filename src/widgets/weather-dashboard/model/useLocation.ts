@@ -4,9 +4,10 @@ import {
   getAddressFromCoords,
   getCoordsFromAddress,
 } from "@/shared/api/geocode";
+import { STORAGE_KEYS } from "@/shared/lib/constants";
 
 // 세션 스토리지 키
-const STORAGE_KEY = "USER_ADDRESS";
+const STORAGE_KEY = STORAGE_KEYS.USER_ADDRESS;
 
 export const useLocationState = () => {
   // 초기값을 세션 스토리지에서 가져옴
