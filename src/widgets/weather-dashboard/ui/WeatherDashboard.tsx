@@ -82,7 +82,12 @@ export const WeatherDashboard = () => {
         {isForecastLoading ? (
           <LoadingSpinner />
         ) : (
-          forecastData?.list && <ForecastScroll data={forecastData.list} />
+          forecastData?.list && (
+            <ForecastScroll
+              key={`forecast-${lat}-${lng}`}
+              data={forecastData.list}
+            />
+          )
         )}
       </div>
 
