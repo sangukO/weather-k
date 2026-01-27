@@ -1,11 +1,8 @@
-import { WeatherDashboard } from "@/widgets";
+import { HomePage } from "@/pages/home";
+import "./styles/index.css";
 
 function App() {
-  return (
-    <div className="flex min-h-screen flex-col items-center bg-gray-100 p-6">
-      <WeatherDashboard />
-    </div>
-  );
+  return <HomePage />;
 }
 
 export default App;
