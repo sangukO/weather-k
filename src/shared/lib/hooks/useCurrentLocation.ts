@@ -1,35 +1,35 @@
-import { useState, useEffect } from "react";
-
-interface Location {
-  latitude: number;
-  longitude: number;
-}
+import { useEffect } from "react";
+import { useLocationStore } from "@/entities/location";
+import { getAddressFromCoords } from "@/shared/api";
 
 export const useCurrentLocation = () => {
-  const [location, setLocation] = useState<Location | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  // 스토어에서 상태와 액션 가져오기
+  const { setMyLocation, setIsGpsLoading } = useLocationStore();
 
   useEffect(() => {
     // 브라우저 지원 여부 확인
     if (!navigator.geolocation) {
-      setError("위치 정보 사용을 지원하지 않는 브라우저입니다.");
-      setIsLoading(false);
+      // 에러 처리를 위해 로딩 종료
+      setIsGpsLoading(false);
       return;
     }
 
     // 현재 위치 가져오기
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords;
-        setLocation({ latitude, longitude });
-        setError(null);
-        setIsLoading(false);
+        const address = await getAddressFromCoords(latitude, longitude);
+
+        // 스토어에 위치 정보 저장
+        setMyLocation({
+          lat: latitude,
+          lng: longitude,
+          address: address || "현재 위치",
+        });
       },
-      (err) => {
-        // 실패 시
-        setError(err.message);
-        setIsLoading(false);
+      (_) => {
+        // 실패 시 로딩 종료
+        setIsGpsLoading(false);
       },
       {
         enableHighAccuracy: true, // 높은 정확도
@@ -37,7 +37,5 @@ export const useCurrentLocation = () => {
         maximumAge: 0, // 캐시된 위치 정보 사용 안 함
       }
     );
-  }, []);
-
-  return { location, error, isLoading };
+  }, [setMyLocation, setIsGpsLoading]);
 };
