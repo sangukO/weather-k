@@ -26,7 +26,7 @@ export const fetchCurrentWeather = async (lat: number, lng: number) => {
 
   try {
     const response = await fetch(
-      `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?${params}`
+      `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?${params}`
     );
 
     if (!response.ok) throw new Error("초단기실황 API 실패");
@@ -63,7 +63,7 @@ export const fetchForecast = async (lat: number, lng: number) => {
 
   try {
     const response = await fetch(
-      `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?${params}`
+      `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?${params}`
     );
 
     if (!response.ok) throw new Error("단기예보 API 실패");
