@@ -5,13 +5,17 @@ interface ButtonProps {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   className?: string;
   ariaLabel?: string;
+  iconClassName?: string;
+  size?: number;
 }
 
 export const IconButton = ({
   Icon,
   onClick,
   className = "",
+  iconClassName = "",
   ariaLabel,
+  size = 24,
 }: ButtonProps) => {
   return (
     <button
@@ -19,7 +23,7 @@ export const IconButton = ({
       className={`cursor-pointer rounded-lg active:scale-95 ${className}`}
       aria-label={ariaLabel}
     >
-      <Icon size={24} className="text-slate-700" />
+      <Icon size={size} className={iconClassName} />
     </button>
   );
 };

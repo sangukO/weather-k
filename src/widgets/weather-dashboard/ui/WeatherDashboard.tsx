@@ -1,70 +1,101 @@
 import { SearchLocation } from "@/features/search-location";
-import {
-  useWeather,
-  useForecast,
-  WeatherCard,
-  ForecastScroll,
-  mergeMinMaxTemp,
-} from "@/entities/weather";
-import { useLocationState } from "../model";
-import { LoadingSpinner } from "@/shared/ui";
+import { useForecast, ForecastScroll } from "@/entities/weather";
+import { IconButton, LoadingSpinner } from "@/shared/ui";
+import { Menu } from "lucide-react";
+import { useState } from "react";
+import { BookmarkModal } from "@/entities/bookmark";
+import "@egjs/react-flicking/dist/flicking.css";
+import { useLocationStore } from "@/entities/location";
+import { useCurrentLocation } from "@/shared";
+import { type PreviewData } from "../lib/types";
+import { LocationPreviewModal } from "@/features/add-location";
+import { LocationSlider } from "./LocationSlider";
 
 export const WeatherDashboard = () => {
-  // 커스텀 훅에서 위치 관련 상태와 로직 가져옴
-  const {
-    currentAddress,
-    targetLocation,
-    isLoading: isLocationLoading,
-    handleLocationSelect,
-  } = useLocationState();
+  // 현 위치 가져오기
+  useCurrentLocation(); // 위치 관련 상태와 액션
 
-  // 현재 날씨 조회
-  const { data: weather } = useWeather({
-    lat: targetLocation?.latitude ?? null,
-    lng: targetLocation?.longitude ?? null,
-  });
+  const { myLocation, isGpsLoading, bookmarks, setCurrentIndex } =
+    useLocationStore();
 
-  // 단기 예보 조회
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewLocation, setPreviewLocation] = useState<PreviewData | null>(
+    null
+  );
+
+  const [visualIndex, setVisualIndex] = useState(0);
+
+  const currentTarget =
+    visualIndex === 0 ? myLocation : bookmarks[visualIndex - 1];
+
+  const lat = currentTarget?.lat ?? 0;
+  const lng = currentTarget?.lng ?? 0;
+
   const { data: forecastData, isLoading: isForecastLoading } = useForecast({
-    lat: targetLocation?.latitude ?? null,
-    lng: targetLocation?.longitude ?? null,
+    lat,
+    lng,
   });
 
-  // 최저/최고 기온 병합
-  if (weather && forecastData) {
-    mergeMinMaxTemp({
-      weather,
-      forecastList: forecastData.list,
-      tmn: forecastData.tmn,
-      tmx: forecastData.tmx,
-    });
-  }
-
-  // 위치 찾는 중일 때 렌더링
-  if (isLocationLoading && !currentAddress) {
+  if (isGpsLoading && !myLocation) {
     return (
-      <div className="p-10 text-center text-gray-500">위치 확인 중...</div>
+      <div className="flex h-screen flex-col items-center justify-center">
+        <LoadingSpinner />
+        <p className="mt-4 text-gray-500">현재 위치를 확인하고 있습니다...</p>
+        <p className="text-xs text-gray-400">
+          브라우저의 위치 권한 허용이 필요합니다.
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="relative w-full max-w-md">
-      <h1 className="mb-6 text-2xl font-bold text-gray-800">지역 검색</h1>
-      {/* 검색창 */}
-      <SearchLocation
-        initialValue={currentAddress}
-        onLocationSelect={handleLocationSelect}
+      <h1 className="mb-6 text-2xl font-bold text-gray-800">Weather-K</h1>
+      <div className="flex flex-row">
+        {/* 검색창 */}
+        <SearchLocation
+          initialValue={currentTarget?.address ?? ""}
+          onLocationSelect={(lat, lng, address) =>
+            setPreviewLocation({ lat, lng, address })
+          }
+        />
+        <IconButton
+          Icon={Menu}
+          onClick={() => setIsModalOpen(true)}
+          className="ml-2"
+          ariaLabel="북마크 목록"
+        />
+      </div>
+
+      {/* 메인 슬라이더 */}
+      <div className="mt-6 w-full">
+        <LocationSlider
+          onIndexChange={(idx) => {
+            setVisualIndex(idx);
+            setCurrentIndex(idx);
+          }}
+        />
+      </div>
+
+      {/* 하단 예보 */}
+      <div className="mt-8">
+        {isForecastLoading ? (
+          <LoadingSpinner />
+        ) : (
+          forecastData?.list && <ForecastScroll data={forecastData.list} />
+        )}
+      </div>
+
+      {/* 북마크 모달 */}
+      <BookmarkModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
-      {/* 날씨 데이터가 있으면 표시 */}
-      {weather && <WeatherCard data={weather} locationName={currentAddress} />}
-      {/* 단기 예보 데이터가 있으면 표시 */}
-      {isForecastLoading ? (
-        // 로딩 중이면 스피너 표시
-        <LoadingSpinner />
-      ) : (
-        // 로딩 후 데이터가 있으면 예보 표시
-        forecastData?.list && <ForecastScroll data={forecastData.list} />
-      )}
+      {/* 미리보기 모달 */}
+      <LocationPreviewModal
+        previewLocation={previewLocation}
+        onClose={() => setPreviewLocation(null)}
+      />
     </div>
   );
 };

@@ -27,7 +27,8 @@ export const SearchLocation = ({
 
   // 초기값 변경 시 반영
   useEffect(() => {
-    if (initialValue) {
+    // 들어온 값과 현재 값이 다를 때만 업데이트
+    if (initialValue !== keyword) {
       setKeyword(initialValue);
     }
   }, [initialValue]);
